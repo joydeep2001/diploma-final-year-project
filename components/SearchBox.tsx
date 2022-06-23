@@ -1,14 +1,14 @@
 import React from "react";
 import { AiOutlineSearch } from "react-icons/ai";
 
-export default function SearchBox() {
+export default function SearchBox({ width, bg }: any) {
   return (
     <div className="relative">
       <AiOutlineSearch className="absolute top-3 left-3" />
       <input
         type="text"
         placeholder="Search..."
-        className="bg-[rgba(255,255,255)] h-10 w-[300px] rounded-lg outline-0 px-[30px] shadow-3in text-sm"
+        className={`bg-[${bg}] h-10 w-[${width}] rounded-lg outline-0 px-[30px] shadow-3in text-sm`}
       />
     </div>
   );

@@ -1,6 +1,6 @@
 const router = require("express").Router();
 const bcrypt = require("bcryptjs");
-
+const dayjs = require("dayjs");
 // const crypto = require('crypto');
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
@@ -62,11 +62,16 @@ router.post("/", async (req, res) => {
     const token = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET);
     // Storing token in cookie
 
-    res.cookie("auth-token", token).json({
-      message: "Reh Bhai Bhai ! Logged in",
-      error: false,
-      isAdmin: validUser.admin,
-    });
+    res
+      .cookie("auth-token", token, {
+        httpOnly: true,
+        expires: dayjs().add(30, "days").toDate(),
+      })
+      .json({
+        message: "Reh Bhai Bhai ! Logged in",
+        error: false,
+        isAdmin: validUser.admin,
+      });
     // res.header('auth-token', token).send(token) -- Store in header if needed
 
     // res.send('Reh Bhai Bhai ! Logged in');
@@ -103,11 +108,16 @@ router.post("/authtokenFromGoogleId/", async (req, res) => {
       isAdmin: user.admin,
     };
     const authToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET);
-    res.cookie("auth-token", authToken).json({
-      message: "Reh Bhai Bhai ! Logged in",
-      error: false,
-      isAdmin: user.admin,
-    });
+    res
+      .cookie("auth-token", authToken, {
+        httpOnly: true,
+        expires: dayjs().add(30, "days").toDate(),
+      })
+      .json({
+        message: "Reh Bhai Bhai ! Logged in",
+        error: false,
+        isAdmin: user.admin,
+      });
   } catch (error) {
     console.log(error.message);
     res.status(400).send();

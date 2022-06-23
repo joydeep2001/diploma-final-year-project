@@ -55,6 +55,9 @@ app.use("/email-verfied", emailVerifiedPage);
 const forgotPassword = require("./routes/forgetpasword");
 app.use("/forget-password", forgotPassword);
 
+const resetPassword = require('./routes/resetPassword');
+app.use("/reset-password",resetPassword);
+
 const upatedPassowrd = require("./routes/updatedPassword");
 app.use("/updated-password", upatedPassowrd);
 

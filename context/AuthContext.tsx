@@ -9,6 +9,7 @@ interface AuthContextInterface {
   serverURL: string | undefined;
   isAdmin: boolean;
   setIsAdmin: any;
+  logout: any;
 }
 
 const defaultAuthValues = {
@@ -18,6 +19,7 @@ const defaultAuthValues = {
   serverURL: "",
   isAdmin: false,
   setIsAdmin: null,
+  logout: null,
 };
 
 export const AuthContext =
@@ -26,7 +28,9 @@ export const AuthContext =
 function AuthContextProvider(props: any) {
   const [loginStatus, setLoginStatus] = useState(false);
   const router = useRouter();
-  const serverURL = process.env.NEXT_PUBLIC_SERVER_URL;
+  let serverURL = process.env.NEXT_PUBLIC_SERVER_URL;
+  //const serverURL = router.pathname;
+
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -43,8 +47,25 @@ function AuthContextProvider(props: any) {
     }
     return { status: false, isAdmin: false };
   }
-
+  const logout = async () => {
+    try {
+      const response = await fetch(serverURL + "/logout", {
+        credentials: "include",
+      });
+      const data = await response.json();
+      console.log(data.message);
+      setLoginStatus(false);
+      router.push("/");
+    } catch (err) {
+      console.log(err);
+    }
+  };
   useEffect(() => {
+    // serverURL = window.location.origin;
+    // serverURL.slice(0, -1);
+    // serverURL += "5";
+    // console.log(window.location);
+    // console.log(serverURL);
     getLoginStatus().then(({ status, isAdmin }) => {
       setLoginStatus(status);
       setIsAdmin(isAdmin);
@@ -61,6 +82,7 @@ function AuthContextProvider(props: any) {
         serverURL,
         isAdmin,
         setIsAdmin,
+        logout,
       }}
     >
       {props.children}

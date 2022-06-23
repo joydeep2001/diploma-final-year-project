@@ -6,24 +6,24 @@ import { useRouter } from "next/router";
 import ProtectedRoute from "../components/ProtectedRoute";
 import "react-toastify/dist/ReactToastify.css";
 
-const protectedPages = [
-  "/Dashboard",
-  "/AdminDashboard",
-  "/MockTest",
-  "/JeletTopicWiseQuestions",
-  "/JeletPYQs",
+const unProtectedPages = [
+  "/Login",
+  "/Signup",
+  "/",
+  "/Forget",
+  "/ChangePassword",
 ];
 
 function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
   return (
     <AuthContextProvider>
-      {protectedPages.includes(router.pathname) ? (
+      {unProtectedPages.includes(router.pathname) ? (
+        <Component {...pageProps} />
+      ) : (
         <ProtectedRoute>
           <Component {...pageProps} />
         </ProtectedRoute>
-      ) : (
-        <Component {...pageProps} />
       )}
     </AuthContextProvider>
   );

@@ -6,18 +6,19 @@ const Jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const dotenv = require('dotenv');
 const Joi = require('joi')
+const { google } = require("googleapis");
 dotenv.config();
 
-let transporter = nodemailer.createTransport({
-    service: 'Gmail',
-    auth: {
-        user: 'tonmaysardar500@gmail.com',
-        pass: process.env.AUTH_PASSWORD
-    },
-    tls: {
-        rejectUnauthorized: false
-    }
-})
+// let transporter = nodemailer.createTransport({
+//     service: 'Gmail',
+//     auth: {
+//         user: 'tonmaysardar500@gmail.com',
+//         pass: process.env.AUTH_PASSWORD
+//     },
+//     tls: {
+//         rejectUnauthorized: false
+//     }
+// })
 
 const emailFormatValidation = (data)=>{
     const schema =Joi.object({
@@ -34,7 +35,8 @@ router.get('/',(req,res)=>{
 
 router.post('/',async(req,res)=>{
    
-    // validating the User's Email
+
+ try {
     const {error} = emailFormatValidation(req.body);
     if(error) return res.status(400).send('Kya Engineer Banega re tuu'+error.details[0].message);
 
@@ -45,14 +47,9 @@ router.post('/',async(req,res)=>{
     
     if(validUser. isVerified ){
         const userToken = UserToken.findOne({userId:validUser._id});
+        // console.log(userToken);
         userToken.oneTimeKey = crypto.randomBytes(70).toString('hex');
-        // const userToken = new UserToken({
-        //     userId : validUser._id,
-        //     oneTimeKey : crypto.randomBytes(64).toString('hex')
-        // })
-
-        // validUser.emailToken = crypto.randomBytes(50).toString('utf8');
-
+      
         //creating a payload for craeating token 
         const payload = {
             id: validUser._id ,
@@ -62,27 +59,62 @@ router.post('/',async(req,res)=>{
             // creating a token for oneTime access
         const onetime_key = Jwt.sign(payload , process.env.ACCESS_TOKEN_SECRET , {expiresIn:'5m'});
 
-        let mailingDetails = {
-            from: '"Team Xlet"<tonmaysardar500@gmail.com>',
-            to: validUser.email,
-            subject: "Reset Your Password",
-            html: `<h1> Girl Friend ka number toh nhi Bhulta ! </h1>
-                    <h2> Here's the Password reset link </h2>
-                    <a href = "http://localhost:3000/reset-password?token=${onetime_key}">Reset Password</a>
-                    `
-        }
-        // Sending Mail 
-        transporter.sendMail(mailingDetails, function (error, info) {
-            if (error) {
-                console.log(error);
+        const oAuth2Client = new google.auth.OAuth2(
+            process.env.CLIENT_ID,
+            process.env.CLIENT_SECRET,
+            process.env.GMAIL_REFRESH_TOKEN
+          );
+          oAuth2Client.setCredentials({
+            refresh_token: process.env.GMAIL_REFRESH_TOKEN,
+          });
+      
+          async function sendMail() {
+            try {
+              const accessToken = await oAuth2Client.getAccessToken();
+              let transporter = nodemailer.createTransport({
+                service: "gmail",
+                auth: {
+                  type: "OAUTH2",
+                  user: "tonmaysardar500@gmail.com",
+                  pass: process.env.AUTH_PASSWORD,
+                  clientId: process.env.CLIENT_ID,
+                  clientSecret: process.env.CLIENT_SECRET,
+                  refreshToken: process.env.GMAIL_REFRESH_TOKEN,
+                  accessToken: accessToken,
+                },
+                tls: {
+                  rejectUnauthorized: false,
+                },
+              });
+      
+              let mailingDetails = {
+                from: '"Team PrepLet"<tonmaysardar500@gmail.com>',
+                to: validUser.email,
+                subject: "Reset Password Link",
+                html: `<h1> GirlFriend ka number toh bhulta </h1>
+                              <h2> Click below link to reset password </h2> 
+                           <a href = "http://localhost:3005/reset-password?token=${onetime_key }">Click to reset password</a>
+                              `,
+              };
+      
+              let Sending = await transporter.sendMail(mailingDetails);
+              return Sending;
+            } catch (error) {
+              console.log("Khatam Tata Bye bye");
+              console.log(error);
             }
-            else {
-                console.log("Mail has been sent to email account")
-            }
-        })
-        
-    } else {
-        res.status(403).send('First Verify Your Account');
-    }
-})
+          }
+          sendMail()
+            .then((Sending) => console.log("Email Has been sent..", Sending))
+            .catch((error) => console.log(error));
+      
+          res.json({ message: "Check your mail to reset the password", error: false });
+ }
+ else{
+    res.json({message:"Verify your mail firtst",error:true})
+ }
+ } catch (error) {
+    
+ }
+});
 module.exports = router;

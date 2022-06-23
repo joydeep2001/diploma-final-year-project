@@ -16,8 +16,8 @@ export default function QnaCard({
   year,
 }: QnaProps) {
   const [displayToolMenu, setDisplayToolMenu] = useState(false);
-  // const { isAdmin } = useContext(AuthContext);
-  const isAdmin = true;
+  const { isAdmin } = useContext(AuthContext);
+  // const isAdmin = true;
   const showToolMenu = () => {
     setDisplayToolMenu(true);
   };
